@@ -1,0 +1,10 @@
+{
+	"access_key":"",
+	"secret_key":"",
+	"listen_host":"localhost",
+	"listen_port":9090,
+	"db_server":"localhost",
+	"db_port":3306,
+	"db_user":"root",
+	"db_pass":"root"
+}
