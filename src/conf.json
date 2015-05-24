@@ -1,10 +1,11 @@
 {
-	"access_key":"",
-	"secret_key":"",
+	"access_key":"<AccessKey>",
+	"secret_key":"<SecretKey>",
 	"listen_host":"localhost",
-	"listen_port":9090,
+	"listen_port":9092,
 	"db_server":"localhost",
 	"db_port":3306,
+	"db_name":"qlog",
 	"db_user":"root",
 	"db_pass":"root"
 }
