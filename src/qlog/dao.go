@@ -160,16 +160,16 @@ func GetBucketListFromSettings() (buckets []string, err error) {
 	return
 }
 
-func WriteQLogRecord(id string, bucket string, date string, reqIp string, reqTime time.Time, reqMethod string, reqProto string, statusCode int,
+func WriteQLogRecord(id string, bucket string, date string, reqIp string, reqTime time.Time, reqMethod string, reqPath string, reqProto string, statusCode int,
 	totalBytes int, referer string, userAgent string, host string, version string) (err error) {
-	stmt, sErr := glbDB.Prepare("INSERT INTO log_record (id,bucket,date,req_ip,req_time,req_method,req_proto,status_code,total_bytes,referer,user_agent,host,version) " +
-		" VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE id=?")
+	stmt, sErr := glbDB.Prepare("INSERT INTO log_record (id,bucket,date,req_ip,req_time,req_method,req_path,req_proto,status_code,total_bytes,referer,user_agent,host,version) " +
+		" VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE id=?")
 	if sErr != nil {
 		err = errors.New(fmt.Sprintf("prepare exec failed due to, %s", sErr.Error()))
 		return
 	}
 	defer stmt.Close()
-	_, execErr := stmt.Exec(id, bucket, date, reqIp, reqTime, reqMethod, reqProto, statusCode, totalBytes, referer, userAgent, host, version, id)
+	_, execErr := stmt.Exec(id, bucket, date, reqIp, reqTime, reqMethod, reqPath, reqProto, statusCode, totalBytes, referer, userAgent, host, version, id)
 	if execErr != nil {
 		err = errors.New(fmt.Sprintf("failed to insert or ignore due to, %s", execErr.Error()))
 		return

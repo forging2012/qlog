@@ -30,8 +30,8 @@ func ParseLogContent(bucket string, date string, paths []string) (err error) {
 				log.Warn("invalid line `", line, "' in file", path)
 			} else {
 				id := sha1Hash(bucket + ":" + date + ":" + line)
-				err := WriteQLogRecord(id, bucket, date, pLog.ReqIp, pLog.ReqTime, pLog.ReqMethod, pLog.ReqProto, pLog.StatusCode,
-					pLog.TotalBytes, pLog.Referer, pLog.UserAgent, pLog.Host, pLog.Version)
+				err := WriteQLogRecord(id, bucket, date, pLog.ReqIp, pLog.ReqTime, pLog.ReqMethod, pLog.ReqPath,
+					pLog.ReqProto, pLog.StatusCode, pLog.TotalBytes, pLog.Referer, pLog.UserAgent, pLog.Host, pLog.Version)
 				if err != nil {
 					log.Warn("write log record to db failed due to," + err.Error())
 				}
