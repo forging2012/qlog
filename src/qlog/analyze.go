@@ -10,6 +10,11 @@ import (
 )
 
 func ParseLogContent(bucket string, date string, paths []string) (err error) {
+	cErr := CreateTableIfNone(bucket, date)
+	if cErr != nil {
+		err = cErr
+		return
+	}
 	for _, path := range paths {
 		lfp, openErr := os.Open(path)
 		if openErr != nil {
