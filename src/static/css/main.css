@@ -1,0 +1,10 @@
+body{
+	background-color: #eee;
+}
+.query-form{
+	max-width: 200px;
+}
+.container{
+	background-color: #fff;
+	padding: 20px;
+}

@@ -4,9 +4,14 @@ import (
 	"time"
 )
 
+//这里定义和数据库表结构相对应的结构体
+
+//日志记录
 type QLogRecord struct {
-	Id         int
-	ReqId      string
+	Id         string
+	Bucket     string
+	Date       string
+	ReqIp      string
 	ReqTime    time.Time
 	ReqMethod  string
 	ReqPath    string
@@ -19,17 +24,19 @@ type QLogRecord struct {
 	Version    string
 }
 
-type LogSyncStatus struct {
-	Bucket     string
-	Date       string
-	StatusCode int
-	Status     string
+//日志分析状态
+type QLogSyncStatus struct {
+	Id     string
+	Bucket string
+	Date   string
+	Done   bool
+	Error  string
 }
 
 //日志同步的配置
-type LogSyncSettings struct {
+type QLogSyncSettings struct {
 	Bucket              string
 	SaveBucket          string
-	SaveDomain          string
+	SaveBucketDomain    string
 	IsSaveBucketPrivate bool
 }

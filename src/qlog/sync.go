@@ -13,24 +13,26 @@ import (
 	"time"
 )
 
-type LogSync struct {
-	BucketName          string
-	SaveBucketName      string
+type QLogSync struct {
+	Bucket              string
+	SaveBucket          string
 	SaveBucketDomain    string
 	IsSaveBucketPrivate bool
 	Mac                 *digest.Mac
 }
 
 //dateStr in format YY-MM-DD
-func (this *LogSync) Sync(dateStr string) error {
-	prefix := fmt.Sprintf("_log/%s/%s", this.BucketName, dateStr)
+func (this *QLogSync) Sync(dateStr string) (paths []string, err error) {
+	prefix := fmt.Sprintf("_log/%s/%s", this.Bucket, dateStr)
 	//get log list of the date from qiniu
 	client := rsf.New(this.Mac)
 	//this app is designed for middle-scale access log mode, items less than 1000
-	entries, _, lerr := client.ListPrefix(nil, this.SaveBucketName, prefix, "", 1000)
+	entries, _, lerr := client.ListPrefix(nil, this.SaveBucket, prefix, "", 1000)
 	if lerr != nil && lerr != io.EOF {
-		return errors.New(fmt.Sprintf("error list bucket of the logs, %s", lerr.Error()))
+		err = errors.New(fmt.Sprintf("error list bucket of the logs, %s", lerr.Error()))
+		return
 	}
+	paths = make([]string, 0)
 	for _, entry := range entries {
 		//create link and download file
 		logDnLink := fmt.Sprintf("%s/%s", this.SaveBucketDomain, entry.Key)
@@ -39,21 +41,24 @@ func (this *LogSync) Sync(dateStr string) error {
 		}
 		//download and save to local file
 		localFpath := entry.Key
-		err := this.downloadFileToLocal(logDnLink, localFpath)
-		if err != nil {
-			return errors.New(fmt.Sprintf("error downloading log file %s to %s, due to %s", logDnLink, localFpath, err.Error()))
+		dErr := this.downloadFileToLocal(logDnLink, localFpath)
+		if dErr != nil {
+			err = errors.New(fmt.Sprintf("error downloading log file %s to %s, due to %s",
+				logDnLink, localFpath, err.Error()))
+			return
 		}
+		paths = append(paths, localFpath)
 	}
-	return nil
+	return
 }
 
-func (this *LogSync) createPrivateDownloadLink(logPublicLink string) string {
+func (this *QLogSync) createPrivateDownloadLink(logPublicLink string) string {
 	linkToSign := fmt.Sprintf("%s?e=%d", logPublicLink, time.Now().Add(time.Hour*24).Unix())
 	token := digest.Sign(this.Mac, []byte(linkToSign))
 	return fmt.Sprintf("%s&token=%s", linkToSign, token)
 }
 
-func (this *LogSync) downloadFileToLocal(dnLink string, localFpath string) error {
+func (this *QLogSync) downloadFileToLocal(dnLink string, localFpath string) error {
 	//check duplicate
 	_, sErr := os.Stat(localFpath)
 	if sErr == nil {

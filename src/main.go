@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"log"
+	"github.com/qiniu/log"
 	"qlog"
 )
 
@@ -12,22 +12,27 @@ func main() {
 	flag.Parse()
 
 	if configFile == "" {
-		log.Println("config file not found")
+		log.Error("config file not found")
 		return
 	}
 
-	cnf := &qlog.QLogConfig{}
-	cnfErr := cnf.LoadFromFile(configFile)
+	qlog.GlbConf = &qlog.QLogConfig{}
+	cnfErr := qlog.GlbConf.LoadFromFile(configFile)
 	if cnfErr != nil {
-		log.Println("load config file error", cnfErr.Error())
+		log.Error("load config file error", cnfErr.Error())
 		return
 	}
 
+	//
+	qlog.GlbTaskRunner = &qlog.QTaskRunner{}
+	qlog.GlbTaskRunner.Init()
+	go qlog.GlbTaskRunner.Scheduler()
 	server := qlog.QLogServer{
-		cnf,
+		qlog.GlbConf,
 	}
+	qlog.InitDB()
 	listenErr := server.Listen()
 	if listenErr != nil {
-		log.Println("start server error,", listenErr.Error())
+		log.Error("start server error,", listenErr.Error())
 	}
 }

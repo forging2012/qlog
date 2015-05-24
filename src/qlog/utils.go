@@ -1,7 +1,10 @@
 package qlog
 
 import (
+	"crypto/sha1"
 	"errors"
+	"fmt"
+	"io"
 	"regexp"
 	"strconv"
 	"strings"
@@ -60,4 +63,18 @@ func Trim(str string, prefix string, suffix string) string {
 	tstr := strings.TrimPrefix(str, prefix)
 	tstr = strings.TrimSuffix(tstr, suffix)
 	return tstr
+}
+
+func Empty(str string) bool {
+	return strings.TrimSpace(str) == ""
+}
+
+func NotEmpty(str string) bool {
+	return strings.TrimSpace(str) != ""
+}
+
+func sha1Hash(str string) string {
+	h := sha1.New()
+	io.WriteString(h, str)
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
