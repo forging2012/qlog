@@ -31,6 +31,10 @@ func main() {
 		qlog.GlbConf,
 	}
 	qlog.InitDB()
+	loadErr := qlog.LoadTaskFromDB()
+	if loadErr != nil {
+		log.Error("load task from db error", loadErr.Error())
+	}
 	listenErr := server.Listen()
 	if listenErr != nil {
 		log.Error("start server error,", listenErr.Error())

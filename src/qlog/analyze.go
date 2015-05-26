@@ -46,3 +46,15 @@ func ParseLogContent(bucket string, date string, paths []string) (err error) {
 	}
 	return
 }
+
+func LoadTaskFromDB() (err error) {
+	prepStatus, pErr := QueryLogPrepare()
+	if pErr != nil {
+		err = pErr
+		return
+	}
+	for _, status := range prepStatus {
+		GlbTaskRunner.AddTask(status.Bucket, status.Date)
+	}
+	return
+}
