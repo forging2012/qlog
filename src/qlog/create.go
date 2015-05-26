@@ -25,6 +25,12 @@ func GetCreateLogRecordTableSQL(bucket string, date string) string {
   version varchar(10) DEFAULT NULL,
   bucket varchar(63) DEFAULT NULL,
   date char(10) DEFAULT NULL,
+  ip_code varchar(100) DEFAULT NULL,
+  ip_country varchar(100) DEFAULT NULL,
+  ip_region varchar(100) DEFAULT NULL,
+  ip_city varchar(100) DEFAULT NULL,
+  ip_isp varchar(100) DEFAULT NULL,
+  ip_note varchar(100) DEFAULT NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 `

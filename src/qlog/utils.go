@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"github.com/slene/iploc"
 	"io"
 	"regexp"
 	"strconv"
@@ -86,4 +87,30 @@ func UrlFor(path string) string {
 		serverRoot += fmt.Sprintf(":%d", GlbConf.ListenPort)
 	}
 	return fmt.Sprintf("%s%s", serverRoot, path)
+}
+
+func GetIpInfo(ip string) (code, country, region, city, isp, note string, err error) {
+	ipInfo, ipErr := iploc.GetIpInfo(ip)
+	if ipErr != nil {
+		err = errors.New("get ip location info failed due to," + ipErr.Error())
+		return
+	}
+	switch ipInfo.Flag {
+	case iploc.FLAG_INUSE:
+		if ipInfo.Code == "CN" {
+			code = ipInfo.Code
+			country = ipInfo.Country
+			region = ipInfo.Region
+			city = ipInfo.City
+			isp = ipInfo.Isp
+		} else {
+			code = ipInfo.Code
+			country = ipInfo.Country
+		}
+	case iploc.FLAG_RESERVED:
+		note = ipInfo.Note
+	case iploc.FLAG_NOTUSE:
+		note = ipInfo.Note
+	}
+	return
 }

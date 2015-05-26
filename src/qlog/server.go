@@ -31,6 +31,7 @@ func (this *QLogServer) Listen() error {
 	http.HandleFunc("/settings", this.serveSettings)
 	http.HandleFunc("/settings/add", this.serveSettingsAdd)
 	http.HandleFunc("/settings/delete", this.serveSettingsDelete)
+	http.HandleFunc("/report/query", this.serveReportQuery)
 
 	http.HandleFunc("/static/fonts/glyphicons-halflings-regular.woff", this.serveStatic)
 	http.HandleFunc("/static/fonts/glyphicons-halflings-regular.wof2", this.serveStatic)
@@ -87,6 +88,11 @@ type RetSettings struct {
 	Error       string
 }
 
+type RetReport struct {
+	Buckets []string
+	Error   string
+}
+
 func (this *QLogServer) serveIndex(w http.ResponseWriter, req *http.Request) {
 	templates := []string{
 		"views/base.html",
@@ -123,6 +129,23 @@ func (this *QLogServer) serveSettings(w http.ResponseWriter, req *http.Request) 
 		this.renderHtml(w, RetSettings{Error: err.Error()}, templates)
 	} else {
 		this.renderHtml(w, RetSettings{SettingsAll: settingsAll}, templates)
+	}
+}
+
+func (this *QLogServer) serveReportQuery(w http.ResponseWriter, req *http.Request) {
+	templates := []string{
+		"views/base.html",
+		"views/base_d.html",
+		"views/head.html",
+		"views/header.html",
+		"views/footer.html",
+		"views/query.html",
+	}
+	buckets, err := GetBucketListFromSettings()
+	if err != nil {
+		this.renderHtml(w, RetReport{Error: err.Error()}, templates)
+	} else {
+		this.renderHtml(w, RetReport{Buckets: buckets}, templates)
 	}
 }
 
