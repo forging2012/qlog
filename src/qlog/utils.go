@@ -65,6 +65,13 @@ func Trim(str string, prefix string, suffix string) string {
 	return tstr
 }
 
+func sha1Hash(str string) string {
+	h := sha1.New()
+	io.WriteString(h, str)
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+//template functions
 func Empty(str string) bool {
 	return strings.TrimSpace(str) == ""
 }
@@ -73,8 +80,10 @@ func NotEmpty(str string) bool {
 	return strings.TrimSpace(str) != ""
 }
 
-func sha1Hash(str string) string {
-	h := sha1.New()
-	io.WriteString(h, str)
-	return fmt.Sprintf("%x", h.Sum(nil))
+func UrlFor(path string) string {
+	serverRoot := "http://" + GlbConf.ListenHost
+	if GlbConf.ListenPort != 80 {
+		serverRoot += fmt.Sprintf(":%d", GlbConf.ListenPort)
+	}
+	return fmt.Sprintf("%s%s", serverRoot, path)
 }

@@ -6,21 +6,21 @@ import (
 )
 
 //查询日志数据
-func QueryLogData(bucket string, dateStr string, params ...string) (records *[]QLogRecord, err error) {
-	logStatus, qErr := QueryLogStatus(bucket, dateStr)
+func PrepareLogData(bucket string, date string) (msg string, err error) {
+	logStatus, qErr := QueryLogStatus(bucket, date)
 	if qErr != nil {
-		err = errors.New(fmt.Sprintf("query log status error due to, %s", qErr.Error()))
+		err = errors.New(fmt.Sprintf("日志状态查询失败, %s", qErr.Error()))
 		return
 	}
 
 	if logStatus == nil || !logStatus.Done {
-		err = errors.New("log data not analysed yet, wait for a few minutes and try again")
+		msg = "日志处理中, 请稍候..."
 		//add task to task queue
-		GlbTaskRunner.AddTask(bucket, dateStr)
+		GlbTaskRunner.AddTask(bucket, date)
 		return
 	} else {
-		//query log data
-
+		//
+		msg = "日志预处理完成!"
 	}
 
 	return

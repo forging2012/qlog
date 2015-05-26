@@ -1,32 +1,83 @@
 {{define "body"}}
+<div class="prepare-form">
+	<p class="title">预处理日志</p>
+	<form action="{{urlFor "/prepare"}}" method="POST" role="form" id="prepare-form">
+		<div class="form-group">
+			<label for="bucket">空间</label>
+			<select name="bucket" class="form-control" id="bucket">
+				{{range .Buckets}}
+				<option value="{{.}}">{{.}}</option>
+				{{end}}
+			</select>	
+		</div>
+		<div class="form-group">
+			<label for="date">日期</label>
+			<input type="text" name="date" class="form-control"
+			 placeholder="YY-MM-DD"/>	
+		</div>
+		<div class="form-group">
+			<input type="submit" value="预处理" class="btn btn-info"/>
+		</div>
+	</form>
+	{{if nempty .Error}}
+	<div class="alert alert-danger" role="alert">{{.Error}}</div>
+	{{end}}
+	<div class="alert alert-danger" role="alert" style="display:none;" id="prepare-form-error"></div>
+	<div class="alert alert-info" role="alert" style="display:none;" id="prepare-form-info"></div>
+</div>
 
-<form action="/" method="POST" role="form" class="query-form">
-	<div class="form-group">
-		<label for="bucket">空间</label>
-		<select name="bucket" class="form-control">
-			{{range .Buckets}}
-			<option value="{{.}}">{{.}}</option>
-			{{end}}
-		</select>	
-	</div>
-	<div class="form-group">
-		<label for="date">日期</label>
-		<input type="text" value="" name="date" class="form-control"
-		 placeholder="YY-MM-DD"/>	
-	</div>
-	<div class="form-group">
-		<label for="type">类型</label>
-		<select name="type" class="form-control"></select>
-	</div>
-	<div class="form-group">
-		<input type="submit" value="查询" class="btn btn-info"/>
-	</div>
-</form>
-
-{{if nempty .Error}}
-<div class="alert alert-danger" role="alert">{{.Error}}</div>
-{{end}}
-
+<script type="text/javascript">
+$(document).ready(function(){
+	function updatePrepareStatus(){
+		var error=$("#prepare-form-error");
+		var info=$("#prepare-form-info");
+		var prepareGroup=$("#prepare-group");
+		$.post("/prepare/query",function(respData){
+			error.hide();
+			info.hide();
+			if (respData.error!=undefined){
+				error.text(respData.error);
+				error.show();
+			}else{
+				var data=respData.data;
+				prepareGroup.find("tbody>tr").remove();
+				if(typeof(data)=="string"){
+					info.text(data);
+					info.show();
+				}else{
+					var statusList=respData.data;
+					var statusData=""
+					for(var i=0;i<statusList.length;i++){
+						var status=statusList[i];
+						statusData+="<tr><td>"+status.bucket+"</td><td>"+status.date+"</td></tr>";
+					}
+					prepareGroup.find("tbody").append(statusData);
+				}
+			}
+		});
+	}
+	setInterval(updatePrepareStatus,3000);
+});
+</script>
+<div class="prepare-group">
+	<p class="title">预处理中任务</p>
+	<table class="table" id="prepare-group">
+		<thead>
+			<tr>
+				<th>空间</th>
+				<th>日期</th>
+			</tr>
+		</thead>
+		<tbody>
+			 {{range .Status}}
+			 <tr>
+			 	<td>{{.Bucket}}</td>
+			 	<td>{{.Date}}</td>
+			 </tr>
+			 {{end}}
+		</tbody>
+	</table>
+</div>
 {{end}}
  
  

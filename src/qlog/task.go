@@ -43,6 +43,7 @@ func (this *QTaskRunner) Scheduler() {
 		this.rwMutex.Unlock()
 		if task != nil {
 			go func() {
+				WriteLogStatus(task.Bucket, task.Date, false)
 				//read sync settings
 				syncSettings, lErr := GetLogSyncSettings(task.Bucket)
 				if lErr != nil {

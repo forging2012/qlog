@@ -10,10 +10,12 @@ import (
 	"strings"
 )
 
+//模版函数
 var (
 	funcMap = template.FuncMap{
 		"empty":  Empty,
 		"nempty": NotEmpty,
+		"urlFor": UrlFor,
 	}
 )
 
@@ -22,12 +24,13 @@ type QLogServer struct {
 }
 
 func (this *QLogServer) Listen() error {
-
 	http.HandleFunc("/", this.serveIndex)
+	http.HandleFunc("/prepare", this.servePrepare)
+	http.HandleFunc("/prepare/query", this.servePrepareQuery)
+	http.HandleFunc("/status/query", this.serveStatusQuery)
 	http.HandleFunc("/settings", this.serveSettings)
-	http.HandleFunc("/settings/add", this.serveSettings)
-	http.HandleFunc("/settings/delete", this.serveSettings)
-	http.HandleFunc("/settings/edit", this.serveSettings)
+	http.HandleFunc("/settings/add", this.serveSettingsAdd)
+	http.HandleFunc("/settings/delete", this.serveSettingsDelete)
 
 	http.HandleFunc("/static/fonts/glyphicons-halflings-regular.woff", this.serveStatic)
 	http.HandleFunc("/static/fonts/glyphicons-halflings-regular.wof2", this.serveStatic)
@@ -75,8 +78,13 @@ func (this *QLogServer) serveStatic(w http.ResponseWriter, req *http.Request) {
 
 type RetIndex struct {
 	Buckets []string
-	Records *[]QLogRecord
+	Status  []*LogPrepareStatus
 	Error   string
+}
+
+type RetSettings struct {
+	SettingsAll []*QLogSyncSettings
+	Error       string
 }
 
 func (this *QLogServer) serveIndex(w http.ResponseWriter, req *http.Request) {
@@ -88,32 +96,34 @@ func (this *QLogServer) serveIndex(w http.ResponseWriter, req *http.Request) {
 		"views/footer.html",
 		"views/index.html",
 	}
-	reqMethod := req.Method
-	var errMsg string
-
 	buckets, err := GetBucketListFromSettings()
 	if err != nil {
-		errMsg = err.Error()
-	}
-	if reqMethod == "GET" {
-		this.renderHtml(w, RetIndex{Buckets: buckets, Error: errMsg}, templates)
-		return
-	}
-	if reqMethod == "POST" {
-		bucket := req.FormValue("bucket")
-		date := req.FormValue("date")
-		logType := req.FormValue("type")
-		records, err := QueryLogData(bucket, date, []string{logType}...)
-		if err != nil {
-			this.renderHtml(w, RetIndex{Buckets: buckets, Error: err.Error()}, templates)
-			return
+		this.renderHtml(w, RetIndex{Error: err.Error()}, templates)
+	} else {
+		prepStatus, perr := QueryLogPrepare()
+		if perr != nil {
+			this.renderHtml(w, RetIndex{Error: perr.Error()}, templates)
+		} else {
+			this.renderHtml(w, RetIndex{Buckets: buckets, Status: prepStatus}, templates)
 		}
-		this.renderHtml(w, RetIndex{Buckets: buckets, Records: records, Error: errMsg}, templates)
 	}
 }
 
 func (this *QLogServer) serveSettings(w http.ResponseWriter, req *http.Request) {
-
+	templates := []string{
+		"views/base.html",
+		"views/base_d.html",
+		"views/head.html",
+		"views/header.html",
+		"views/footer.html",
+		"views/settings.html",
+	}
+	settingsAll, err := GetLogSyncSettingsAll()
+	if err != nil {
+		this.renderHtml(w, RetSettings{Error: err.Error()}, templates)
+	} else {
+		this.renderHtml(w, RetSettings{SettingsAll: settingsAll}, templates)
+	}
 }
 
 func (this *QLogServer) renderHtml(w http.ResponseWriter, data interface{}, viewPaths []string) {

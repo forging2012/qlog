@@ -26,9 +26,9 @@ func InitDB() {
 }
 
 //检查日志的状态
-func QueryLogStatus(bucket string, dateStr string) (logStatus *QLogSyncStatus, err error) {
+func QueryLogStatus(bucket string, date string) (logStatus *QLogSyncStatus, err error) {
 	queryStr := "SELECT id,bucket,date,done FROM log_sync_status WHERE bucket=? AND date=?"
-	rows, qErr := glbDB.Query(queryStr, bucket, dateStr)
+	rows, qErr := glbDB.Query(queryStr, bucket, date)
 	if qErr != nil {
 		err = errors.New(fmt.Sprintf("query failed due to, %s", qErr.Error()))
 		return
@@ -50,13 +50,41 @@ func QueryLogStatus(bucket string, dateStr string) (logStatus *QLogSyncStatus, e
 		logStatus.Bucket = bucket
 		logStatus.Date = date
 		logStatus.Done = done
+	}
+	return
+}
 
+func QueryLogPrepare() (logPrepareStatus []*LogPrepareStatus, err error) {
+	queryStr := "SELECT bucket,date,done FROM log_sync_status WHERE done=? ORDER BY bucket,date"
+	rows, qErr := glbDB.Query(queryStr, false)
+	if qErr != nil {
+		err = errors.New(fmt.Sprintf("query failed due to, %s", qErr.Error()))
+		return
+	}
+
+	logPrepareStatus = make([]*LogPrepareStatus, 0)
+	for rows.Next() {
+		logStatus := &LogPrepareStatus{}
+		var bucket string
+		var date string
+		var done bool
+
+		rErr := rows.Scan(&bucket, &date, &done)
+		if rErr != nil {
+			err = errors.New(fmt.Sprintf("read row data failed due to, %s", rErr.Error()))
+			return
+		}
+
+		logStatus.Bucket = bucket
+		logStatus.Date = date
+		logStatus.Done = done
+		logPrepareStatus = append(logPrepareStatus, logStatus)
 	}
 	return
 }
 
 //写入日志的状态
-func WriteLogStatus(bucket string, dateStr string, done bool) (err error) {
+func WriteLogStatus(bucket string, date string, done bool) (err error) {
 	stmt, sErr := glbDB.Prepare("INSERT INTO log_sync_status (id,bucket,date,done) " +
 		" VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE done=?")
 	if sErr != nil {
@@ -64,8 +92,8 @@ func WriteLogStatus(bucket string, dateStr string, done bool) (err error) {
 		return
 	}
 	defer stmt.Close()
-	id := base64.URLEncoding.EncodeToString([]byte(bucket + ":" + dateStr))
-	_, execErr := stmt.Exec(id, bucket, dateStr, done, done)
+	id := base64.URLEncoding.EncodeToString([]byte(bucket + ":" + date))
+	_, execErr := stmt.Exec(id, bucket, date, done, done)
 	if execErr != nil {
 		err = errors.New(fmt.Sprintf("failed to insert or update due to, %s", execErr.Error()))
 		return
@@ -99,6 +127,36 @@ func GetLogSyncSettings(bucket string) (settings *QLogSyncSettings, err error) {
 		settings.SaveBucket = saveBucket
 		settings.SaveBucketDomain = saveBucketDomain
 		settings.IsSaveBucketPrivate = isSaveBucketPrivate
+	}
+	return
+}
+
+func GetLogSyncSettingsAll() (settingsAll []*QLogSyncSettings, err error) {
+	queryStr := "SELECT bucket,save_bucket,save_bucket_domain,is_save_bucket_private FROM log_sync_settings ORDER BY bucket ASC"
+	rows, qErr := glbDB.Query(queryStr)
+	if qErr != nil {
+		err = errors.New(fmt.Sprintf("query failed due to, %s", qErr.Error()))
+		return
+	}
+	settingsAll = make([]*QLogSyncSettings, 0)
+	for rows.Next() {
+		settings := &QLogSyncSettings{}
+
+		var bucket string
+		var saveBucket string
+		var saveBucketDomain string
+		var isSaveBucketPrivate bool
+
+		rErr := rows.Scan(&bucket, &saveBucket, &saveBucketDomain, &isSaveBucketPrivate)
+		if rErr != nil {
+			err = errors.New(fmt.Sprintf("read row data failed due to, %s", rErr.Error()))
+			return
+		}
+		settings.Bucket = bucket
+		settings.SaveBucket = saveBucket
+		settings.SaveBucketDomain = saveBucketDomain
+		settings.IsSaveBucketPrivate = isSaveBucketPrivate
+		settingsAll = append(settingsAll, settings)
 	}
 	return
 }

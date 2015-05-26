@@ -21,9 +21,9 @@ type QLogSync struct {
 	Mac                 *digest.Mac
 }
 
-//dateStr in format YY-MM-DD
-func (this *QLogSync) Sync(dateStr string) (paths []string, err error) {
-	prefix := fmt.Sprintf("_log/%s/%s", this.Bucket, dateStr)
+//date in format YY-MM-DD
+func (this *QLogSync) Sync(date string) (paths []string, err error) {
+	prefix := fmt.Sprintf("_log/%s/%s", this.Bucket, date)
 	//get log list of the date from qiniu
 	client := rsf.New(this.Mac)
 	//this app is designed for middle-scale access log mode, items less than 1000

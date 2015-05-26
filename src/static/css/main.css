@@ -1,10 +1,31 @@
 body{
 	background-color: #eee;
 }
-.query-form{
-	max-width: 200px;
+
+.title{
+	font-size: 20px;
+	font-weight: bold;
 }
-.container{
-	background-color: #fff;
+
+.settings-form,.prepare-form{
+	max-width: 400px;
+	padding: 10px;
+	border-radius: 5px;
+}
+ 
+.settings-group{
+	margin-top: 10px;
+	border: 1px solid #ddd;
 	padding: 20px;
+	border-radius: 5px;
+}
+
+.container{
+	border-radius: 5px;
+	background-color: #fff;
+	padding: 10px;
+}
+
+.hidden{
+	display: none;
 }

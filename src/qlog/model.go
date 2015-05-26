@@ -30,7 +30,6 @@ type QLogSyncStatus struct {
 	Bucket string
 	Date   string
 	Done   bool
-	Error  string
 }
 
 //日志同步的配置
