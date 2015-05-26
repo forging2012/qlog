@@ -1,6 +1,6 @@
 {
-	"access_key":"5SZhTMsIg9RICCyFX2sri60yEEkxv3S2qcrS8NOD",
-	"secret_key":"lM4vpIR1ypD2abYAVJwbEqijlKCYmS8hnHJCtbgZ",
+	"access_key":"<AccessKey>",
+	"secret_key":"<SecretKey>",
 	"listen_host":"localhost",
 	"listen_port":9092,
 	"db_server":"localhost",
