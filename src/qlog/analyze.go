@@ -7,7 +7,7 @@ import (
 	"github.com/qiniu/log"
 	"os"
 	"strings"
-	"time"
+	"sync"
 )
 
 func ParseLogContent(bucket string, date string, paths []string) (err error) {
@@ -56,26 +56,31 @@ func ParseLogContent(bucket string, date string, paths []string) (err error) {
 		lfp.Close()
 	}
 	//check the ip
+	wg := sync.WaitGroup{}
 	cnt := 1
 	for _, item := range ipNotFound {
-		parts := strings.Split(item, ":")
-		id := parts[0]
-		ip := parts[1]
-		tblName := parts[2]
 		if cnt%10 == 0 {
-			<-time.After(time.Millisecond * 500)
+			wg.Wait()
 		}
-		cnt += 1
-		ipCode, ipCountry, ipRegion, ipCity, ipIsp, ipNote, ipErr := GetTaobaoIpInfo(ip)
-		if ipErr != nil {
-			log.Warn(ipErr)
-		} else {
-			err := UpdateQLogIp(id, tblName, ipCode, ipCountry, ipRegion, ipCity, ipIsp, ipNote)
-			if err != nil {
-				log.Warn("update log record to db failed due to," + err.Error())
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			parts := strings.Split(item, ":")
+			id := parts[0]
+			ip := parts[1]
+			tblName := parts[2]
+			ipCode, ipCountry, ipRegion, ipCity, ipIsp, ipNote, ipErr := GetTaobaoIpInfo(ip)
+			if ipErr != nil {
+				log.Warn(ipErr)
+			} else {
+				err := UpdateQLogIp(id, tblName, ipCode, ipCountry, ipRegion, ipCity, ipIsp, ipNote)
+				if err != nil {
+					log.Warn("update log record to db failed due to," + err.Error())
+				}
 			}
-		}
+		}()
 	}
+	wg.Wait()
 	return
 }
 
