@@ -2,10 +2,13 @@ package qlog
 
 import (
 	"crypto/sha1"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/slene/iploc"
 	"io"
+	"io/ioutil"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -26,6 +29,26 @@ var shortMonthNames = map[string]time.Month{
 	"Nov": time.November,
 	"Dec": time.December,
 }
+
+type TaobaoIpRet struct {
+	Code     int      `json:"code"`
+	TaobaoIp TaobaoIp `json:"data"`
+}
+type TaobaoIp struct {
+	Country   string `json:"country"`
+	CountryId string `json:"country_id"`
+	Area      string `json:"area"`
+	AreaId    string `json:"area_id"`
+	Region    string `json:"region"`
+	RegionId  string `json:"region_id"`
+	City      string `json:"city"`
+	CityId    string `json:"city_id"`
+	Isp       string `json:"isp"`
+	IspId     string `json:"isp_id"`
+	Ip        string `json:"ip"`
+}
+
+const INVALID_TAOBAO_IP = `{"code":1,"data":"invaild ip."}`
 
 func ParseDateTime(str string) (t time.Time, err error) {
 	pattern := `^\d{2}/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/\d{4}:\d{2}:\d{2}:\d{2}\s\+0800$`
@@ -112,5 +135,36 @@ func GetIpInfo(ip string) (code, country, region, city, isp, note string, err er
 	case iploc.FLAG_NOTUSE:
 		note = ipInfo.Note
 	}
+	return
+}
+
+func GetTaobaoIpInfo(ip string) (code, country, region, city, isp, note string, err error) {
+	url := fmt.Sprintf("http://ip.taobao.com/service/getIpInfo.php?ip=%s", ip)
+	resp, respErr := http.Get(url)
+	if respErr != nil {
+		err = errors.New(fmt.Sprintf("get taobao ip error, %s", respErr))
+		return
+	}
+	defer resp.Body.Close()
+	respData, readErr := ioutil.ReadAll(resp.Body)
+	if readErr != nil {
+		err = errors.New(fmt.Sprintf("read taobao ip data error, %s", readErr))
+		return
+	}
+	if string(respData) == INVALID_TAOBAO_IP {
+		err = errors.New(fmt.Sprintf("invalid ip %s", ip))
+		return
+	}
+	taobaoIpRet := TaobaoIpRet{}
+	pErr := json.Unmarshal(respData, &taobaoIpRet)
+	if pErr != nil {
+		err = errors.New(fmt.Sprintf("parse taobao ip data error, %s", pErr))
+		return
+	}
+	code = taobaoIpRet.TaobaoIp.CountryId
+	country = taobaoIpRet.TaobaoIp.Country
+	region = taobaoIpRet.TaobaoIp.Region
+	city = taobaoIpRet.TaobaoIp.City
+	isp = taobaoIpRet.TaobaoIp.Isp
 	return
 }

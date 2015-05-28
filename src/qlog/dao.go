@@ -253,3 +253,19 @@ func WriteQLogRecord(id, bucket, date, reqIp string, reqTime time.Time, reqMetho
 	}
 	return
 }
+
+//更新ip信息
+func UpdateQLogIp(id, tblName, ipCode, ipCountry, ipRegion, ipCity, ipIsp, ipNote string) (err error) {
+	stmt, sErr := glbDB.Prepare(fmt.Sprintf("UPDATE %s SET ip_code=?, ip_country=?, ip_region=?, ip_city=?, ip_isp=?,ip_note=? WHERE id=?", tblName))
+	if sErr != nil {
+		err = errors.New(fmt.Sprintf("prepare exec failed due to, %s", sErr.Error()))
+		return
+	}
+	defer stmt.Close()
+	_, execErr := stmt.Exec(ipCode, ipCountry, ipRegion, ipCity, ipIsp, ipNote, id)
+	if execErr != nil {
+		err = errors.New(fmt.Sprintf("failed to update log record due to, %s", execErr.Error()))
+		return
+	}
+	return
+}
