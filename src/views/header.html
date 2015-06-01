@@ -5,9 +5,17 @@
 
     <div class="collapse navbar-collapse" id="menu-navbar-collapse">
         <ul class="nav navbar-nav">
-        	<li><a href="/">预处理</a></li>
-            <li><a href="/report/query">查询</a></li>
-            <li><a href="/settings">设置</a></li>
+        	<li><a href="{{urlFor "/"}}">预处理</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">报表 <span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                   <li class="dropdown">
+                       <li><a href="{{urlFor "/report/top/access"}}">每日访问最多的资源</a></li>
+                       <li><a href="{{urlFor "/report/supplier/summary"}}">每日访问供应商来源</a></li>
+                    </li>
+                </ul>
+            </li>
+            <li><a href="{{urlFor "/settings"}}">设置</a></li>
         </ul>
     </div>
 </div>

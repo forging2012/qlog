@@ -1,25 +1,19 @@
 {{define "body"}}
 <div class="query-form">
-	<p class="title">日志查询</p>
-	<form action="{{urlFor "/report/query"}}" method="POST" role="form" id="query-form">
+	<p class="title">日志查询 - 每日访问供应商来源</p>
+	<form action="{{urlFor "/report/supplier/summary"}}" method="POST" role="form" id="query-form">
 		<div class="form-group">
 			<label for="bucket">空间</label>
 			<select name="bucket" class="form-control" id="bucket">
-				{{range .Buckets}}
+				{{range .FormData.Buckets}}
 				<option value="{{.}}">{{.}}</option>
 				{{end}}
 			</select>	
 		</div>
 		<div class="form-group">
 			<label for="date">日期</label>
-			<input type="text" name="date" class="form-control"
+			<input type="text" name="date" class="form-control" value="{{.FormData.Date}}"
 			 placeholder="YY-MM-DD"/>	
-		</div>
-		<div class="form-group">
-			<label for="logType">类型</label>
-			<select name="logType" class="form-control">
-
-			</select>
 		</div>
 		<div class="form-group">
 			<input type="submit" value="查询" class="btn btn-info"/>
@@ -31,8 +25,26 @@
 	<div class="alert alert-danger" role="alert" style="display:none;" id="query-form-error"></div>
 	<div class="alert alert-info" role="alert" style="display:none;" id="query-form-info"></div>
 </div>
+
+
  
 <div>
-
+<table class="table">
+	<thead>
+		<tr>
+			<th>供应商</th>
+			<th>访问次数</th>
+		</tr>
+	</thead>
+	<tbody>
+		 {{range .RetData.AccessCntOfSuppliers}}
+		 <tr>
+		 	<td>{{.Supplier}}</td>
+		 	<td>{{.Count}}</td>
+		 </tr>
+		 {{end}}
+	</tbody>
+</table>
 </div>
+
 {{end}}

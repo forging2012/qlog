@@ -1,0 +1,57 @@
+{{define "body"}}
+<div class="query-form">
+	<p class="title">日志查询 - 每日访问最多的资源</p>
+	<form action="{{urlFor "/report/top/access"}}" method="POST" role="form" id="query-form">
+		<div class="form-group">
+			<label for="bucket">空间</label>
+			<select name="bucket" class="form-control" id="bucket">
+				{{range .FormData.Buckets}}
+				<option value="{{.}}">{{.}}</option>
+				{{end}}
+			</select>	
+		</div>
+		<div class="form-group">
+			<label for="date">日期</label>
+			<input type="text" name="date" class="form-control" value="{{.FormData.Date}}"
+			 placeholder="YY-MM-DD"/>	
+		</div>
+		<div class="form-group">
+			<label for="num">数量</label>
+			<select name="num" class="form-control">
+				<option value="10">10</option>
+				<option value="50">50</option>
+				<option value="100">100</option>
+			</select>
+		</div>
+		<div class="form-group">
+			<input type="submit" value="查询" class="btn btn-info"/>
+		</div>
+	</form>
+	{{if nempty .Error}}
+	<div class="alert alert-danger" role="alert">{{.Error}}</div>
+	{{end}}
+	<div class="alert alert-danger" role="alert" style="display:none;" id="query-form-error"></div>
+	<div class="alert alert-info" role="alert" style="display:none;" id="query-form-info"></div>
+</div>
+ 
+<div>
+<table class="table">
+	<thead>
+		<tr>
+			<th>路径</th>
+			<th>次数</th>
+			<th>外链</th>
+		</tr>
+	</thead>
+	<tbody>
+		 {{range .RetData.TopAccessResource}}
+		 <tr>
+		 	<td>{{.Path}}</td>
+		 	<td>{{.Count}}</td>
+		 	<td><a href="{{.Url}}" target="_blank">访问</a></td>
+		 </tr>
+		 {{end}}
+	</tbody>
+</table>
+</div>
+{{end}}
